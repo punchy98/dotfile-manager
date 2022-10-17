@@ -49,7 +49,7 @@ fn createdirectories(homedir: &str,dir: &str) {
 //create list of conf files to symlink
 fn generateconflist(homedir: &str) {
     //change to be ~/dotfiles after testing
-    let configdir = [&homedir,"/","projects/dotfiles"].concat();
+    let configdir = [&homedir,"/projects/dotfiles"].concat();
     for entry in WalkDir::new(&configdir)
             .follow_links(true)
             .into_iter()
