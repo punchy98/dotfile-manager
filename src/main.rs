@@ -23,40 +23,42 @@ struct CliArgs {
 
 fn main() {
     let args = CliArgs::parse();
-    cloneurl(args.githubuser,args.repo);
+    let homedir = env::var("HOME").expect("$HOME` is not set");
+    //change to ~/dotfiles after testing
+    let dotfiledir = [&homedir,"/projects/dotfiles"].concat();
+    println!("Cloning into {}",dotfiledir);
+    cloneurl(&dotfiledir,args.githubuser,args.repo);
     //change to .config when done testing
-    createdirectories("testingrustconfig");
-    generateconflist();
+    createdirectories(&homedir,"testingrustconfig");
+    generateconflist(&homedir);
 }
 //clone url from github repo based on user input
-fn cloneurl(user: String,repo: String) {
+fn cloneurl(dotspath: &str,user: String,repo: String) {
     let fullghurl = ["https://github.com/", &user, "/", &repo].concat();
-    let ghrepo = match Repository::clone(&fullghurl,"/home/punchy/projects/dotfiles") {
+    let ghrepo = match Repository::clone(&fullghurl,&dotspath) {
        Ok(ghrepo) => ghrepo,
        Err(error) => panic!("failed to clone: {:?}", error),
     };
 }
 //create directories
-fn createdirectories(dir: &str) {
-    let homedir = env::var("HOME").expect("$HOME` is not set");
+fn createdirectories(homedir: &str,dir: &str) {
     let newdir = [&homedir,"/",&dir].concat();
     fs::create_dir(&newdir);
 
 }
 //create list of conf files to symlink
-fn generateconflist(){
-    let homedir = env::var("HOME").expect("$HOME` is not set");
+fn generateconflist(homedir: &str) {
+    //change to be ~/dotfiles after testing
     let configdir = [&homedir,"/","projects/dotfiles"].concat();
-    let walker = WalkDir::new(&configdir).into_iter();
-    for entry in walker {//.filter_entry(|e| is_conf(e)) {
-        println!("{:?}", entry?.path().display());
-}
-}
-fn is_conf(entry: &DirEntry) -> bool {
-    entry.file_name()
-         .to_str()
-         .map(|s| s.ends_with("conf"))
-         .unwrap_or(false)
-}
+    for entry in WalkDir::new(&configdir)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok()) {
+        let f_name = entry.file_name().to_string_lossy();
+        if f_name.ends_with(".conf") {
+            println!("{}", f_name);
+        }
+    }
+}   
 
 
