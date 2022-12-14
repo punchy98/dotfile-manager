@@ -37,7 +37,8 @@ fn main() {
     //set list equal to the return value - all the config filenames
     let mut list = generateconflist(&homedir);
     //create directories for all config files in .config
-    createconfigdirs(&mut list, &configdir);
+    //createconfigdirs(&mut list, &configdir);
+    createconfig_parentdirs(); 
 }
 //clone url from github repo based on user input
 fn cloneurl(dotspath: &str,user: String,repo: String) {
@@ -82,5 +83,16 @@ fn createconfigdirs(conflist: &mut Vec<String>, parentdir: &str){
     for config in conflist{
         println!("Creating directory for {}", config);
         createdirectories(&parentdir,&config);
+    }
+}
+fn createconfig_parentdirs(){
+    let mut configlist: Vec<String> = Vec::new(); 
+    let configdir = [&homedir,"/projects/dotfiles"].concat();
+    for entry in read_dir::new(&configdir).unwrap(){
+        let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_dir() {
+                println!("{:?} is a dir", path);
+            }
     }
 }
